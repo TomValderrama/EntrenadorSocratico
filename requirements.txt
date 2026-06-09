@@ -1,0 +1,2 @@
+anthropic       # Conexión con Claude
+python-dotenv   # Seguridad para tu API Key
