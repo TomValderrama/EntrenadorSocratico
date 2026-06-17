@@ -17,6 +17,50 @@ hacer a punta de scripts sueltos.
 
 ---
 
+## Mentalidad para aprender múltiples lenguajes
+
+Python no es un pseudolenguaje — corre en producción en Google, Netflix, Instagram, NASA.
+La opinión opuesta es snobismo o desconocimiento.
+
+**El insight clave:** los lenguajes son herramientas. Lo que realmente se aprende al
+"aprender a programar" son conceptos universales que no cambian entre lenguajes:
+
+- Estructuras de datos (listas, árboles, grafos, hash maps)
+- Algoritmos y complejidad
+- Paradigmas (OOP, funcional, imperativo)
+- Patrones de diseño
+- Cómo funciona la memoria
+- Concurrencia y asincronía
+- Cómo modelar problemas
+
+Cuando se entiende el *por qué* de las cosas en un lenguaje, el siguiente se aprende en
+semanas, no meses. El lenguaje solo cambia la sintaxis.
+
+### Ruta de lenguajes (en orden)
+
+```
+Python profundo (esta ruta)
+    → C o C++        ← entiender memoria, punteros, parsers binarios
+    → Go o C#        ← lenguaje tipado moderno; el resto viene solo
+    → Fortran        ← solo si aparece código legacy en el dominio (no proactivo)
+```
+
+**Por qué C/C++ es el segundo paso y no Go o Rust directamente:**
+el dominio (datos binarios MBES, performance con millones de puntos, parsers de `.s7k` y
+`.kmall`) empuja directo a entender memoria. Quien sabe C entiende automáticamente por qué
+Python es lento, por qué Rust existe, y cómo funciona un compilador.
+
+### Lo que no caduca (prioridad paralela)
+
+Independientemente del lenguaje de turno, estas habilidades siempre valen:
+
+- Algoritmos y estructuras de datos
+- Sistemas operativos y redes
+- SQL y bases de datos
+- Git y control de versiones
+
+---
+
 ## La idea central
 
 **Senior no es "escribir código rápido".** Es **juicio**: arquitectura, tradeoffs, depurar
