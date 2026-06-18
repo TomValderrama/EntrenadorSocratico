@@ -143,6 +143,27 @@ APIs (Claude, GEE).
 
 ---
 
+### Bloque 8 — ML aplicado a datos oceanográficos
+
+**Nodos:** cuándo usar ML vs estadística clásica · feature engineering con pandas/xarray ·
+`scikit-learn` (LinearRegression, RandomForest, GradientBoosting) · validación cruzada
+temporal (por qué no aleatoria con series de tiempo) · métricas de regresión (RMSE, R²,
+residuos) · cuándo DL no es necesario.
+
+**Por qué yo:** tengo datos de oxígeno disuelto (miniDOT), temperatura, salinidad,
+variables atmosféricas (ERA5) y salidas de modelos (CROCO, SWAN, WRF). El paso natural
+es construir modelos predictivos que conecten esas fuentes. ML clásico cubre el 90%
+de estos casos — no necesito redes neuronales profundas.
+
+**Proyecto de validación:** modelo predictivo de oxígeno disuelto en función de
+temperatura, profundidad, viento y época del año. Validar con split temporal (no
+aleatorio). Comparar Random Forest vs regresión lineal e interpretar los residuos.
+
+**Problema nuevo:** el modelo funciona bien en el período de entrenamiento pero falla
+en otra estación del año. Diagnosticar por qué y proponer solución.
+
+---
+
 ## El método de preguntas (para el tutor y para mí)
 
 Un buen diálogo socrático **no es un número de mensajes, es una estructura**. Un nodo nuevo
