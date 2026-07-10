@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LLM Council — ¿Está bien orientado EntrenadorSocratico?</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      color: #1a1a1a;
+      background: #f5f5f0;
+      padding: 2rem 1rem;
+    }
+
+    .container { max-width: 800px; margin: 0 auto; }
+
+    .header {
+      background: #fff;
+      border: 1px solid #e0e0d8;
+      border-radius: 8px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .header h1 { font-size: 1.25rem; font-weight: 600; color: #2d5a88; margin-bottom: 0.25rem; }
+    .header .meta { font-size: 0.8rem; color: #888; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+    .badge {
+      background: #e8f0fb;
+      color: #2d5a88;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    .badge.mode-standard { background: #e8f0fb; color: #2d5a88; }
+
+    .confidence-block {
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.875rem;
+      border-left: 4px solid;
+    }
+    .confidence-high { background: #f0faf0; border-color: #4caf50; }
+    .confidence-medium { background: #fff8e1; border-color: #ff9800; }
+    .confidence-low { background: #fff5f5; border-color: #f44336; color: #c62828; }
+    .confidence-block strong { display: block; margin-bottom: 0.25rem; }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e0e0d8;
+      border-radius: 8px;
+      margin-bottom: 1.25rem;
+      overflow: hidden;
+    }
+    .card-title {
+      padding: 0.875rem 1.5rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #666;
+      border-bottom: 1px solid #e0e0d8;
+      background: #fafaf8;
+    }
+    .card-body { padding: 1.25rem 1.5rem; }
+
+    .question-text {
+      background: #f8f8f5;
+      border-left: 3px solid #2d5a88;
+      padding: 0.875rem 1rem;
+      border-radius: 0 4px 4px 0;
+      font-size: 0.95rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .bias-flags {
+      margin-top: 0.875rem;
+      padding: 0.75rem 1rem;
+      background: #fffde7;
+      border: 1px solid #f9e200;
+      border-radius: 6px;
+      font-size: 0.8rem;
+    }
+    .bias-flags strong { display: block; margin-bottom: 0.25rem; color: #856900; }
+
+    .verdict h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 1.25rem 0 0.5rem;
+      color: #2d5a88;
+      padding-top: 1rem;
+      border-top: 1px solid #e8e8e0;
+    }
+    .verdict h2:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+    .verdict p { margin-bottom: 0.75rem; }
+    .verdict ul { padding-left: 1.5rem; margin-bottom: 0.75rem; }
+    .verdict li { margin-bottom: 0.4rem; }
+    .verdict strong { font-weight: 600; }
+
+    .dissent-ledger {
+      margin-top: 1.25rem;
+      padding: 1rem;
+      background: #fff5f5;
+      border: 1px solid #ffcdd2;
+      border-radius: 6px;
+    }
+    .dissent-ledger strong { display: block; margin-bottom: 0.5rem; color: #b71c1c; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .dissent-ledger ul { padding-left: 1.25rem; font-size: 0.9rem; }
+    .dissent-ledger li { margin-bottom: 0.4rem; }
+    .dissent-ledger .note { margin-top: 0.75rem; font-style: italic; }
+
+    .grid-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    .grid-table th {
+      padding: 0.4rem 0.75rem;
+      text-align: center;
+      background: #f0f4fa;
+      color: #2d5a88;
+      font-weight: 600;
+      border: 1px solid #dde4f0;
+    }
+    .grid-table th:first-child { text-align: left; min-width: 160px; }
+    .grid-table td {
+      padding: 0.4rem 0.75rem;
+      border: 1px solid #e8e8e0;
+      text-align: center;
+    }
+    .grid-table td:first-child { text-align: left; font-size: 0.8rem; color: #333; }
+    .dot { color: #2d5a88; font-size: 1.1rem; }
+
+    .rice-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    .rice-table th { padding: 0.4rem 0.75rem; background: #f0f4fa; color: #2d5a88; font-weight: 600; border: 1px solid #dde4f0; text-align: left; }
+    .rice-table td { padding: 0.4rem 0.75rem; border: 1px solid #e8e8e0; vertical-align: top; }
+    .rice-score { font-weight: 700; color: #2d5a88; }
+    .status-draft { color: #f57c00; font-weight: 600; font-size: 0.75rem; }
+
+    details { margin-bottom: 0.5rem; }
+    details summary {
+      cursor: pointer;
+      padding: 0.6rem 1rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    details summary::-webkit-details-marker { display: none; }
+    details summary::before { content: "▶"; font-size: 0.7rem; transition: transform 0.15s; }
+    details[open] summary::before { transform: rotate(90deg); }
+    details .detail-body {
+      padding: 0.875rem 1rem 0.875rem 1.5rem;
+      font-size: 0.875rem;
+      border-left: 3px solid #e0e0d8;
+      margin-left: 0.5rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .advisor-red-team summary { border-left: 3px solid #e53935; background: #fff5f5; }
+    .advisor-red-team .detail-body { border-left-color: #e53935; }
+    .advisor-first-principles summary { border-left: 3px solid #1e88e5; background: #f0f4fb; }
+    .advisor-first-principles .detail-body { border-left-color: #1e88e5; }
+    .advisor-expansionist summary { border-left: 3px solid #43a047; background: #f0faf0; }
+    .advisor-expansionist .detail-body { border-left-color: #43a047; }
+    .advisor-outsider summary { border-left: 3px solid #fb8c00; background: #fff8f0; }
+    .advisor-outsider .detail-body { border-left-color: #fb8c00; }
+    .advisor-executor summary { border-left: 3px solid #8e24aa; background: #f8f0fb; }
+    .advisor-executor .detail-body { border-left-color: #8e24aa; }
+
+    .conf-high { color: #2e7d32; font-weight: 600; }
+    .conf-medium { color: #e65100; font-weight: 600; }
+    .conf-low { color: #c62828; font-weight: 600; }
+
+    footer {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e0e0d8;
+      font-size: 0.75rem;
+      color: #aaa;
+      text-align: center;
+    }
+    footer a { color: #2d5a88; }
+
+    @media (prefers-color-scheme: dark) {
+      body { background: #1a1a1a; color: #e8e8e0; }
+      .header, .card { background: #242424; border-color: #3a3a3a; }
+      .card-title { background: #2a2a2a; border-color: #3a3a3a; color: #aaa; }
+      .question-text { background: #202020; }
+      details .detail-body { color: #d8d8d0; }
+      footer { color: #777; border-color: #3a3a3a; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>LLM Council</h1>
+    <div class="meta">
+      <span>2026-07-08T15:40:33Z</span>
+      <span class="badge mode-standard">Standard</span>
+    </div>
+  </div>
+
+  <div class="confidence-block confidence-medium">
+    <strong>Council confidence: medium (0/5 alto, 5/5 medio, 0/5 bajo)</strong>
+    Suposición dominante: el mecanismo central del tutor (negarse a dar respuestas, solo preguntas guía) ya es correcto y no necesita reescritura — el desacuerdo es sobre qué construir alrededor de él, no sobre el núcleo mismo.<br>
+    Breakers: (1) evidencia de que las sesiones se pierden por fallos técnicos no capturados; (2) evidencia de "falsos positivos de comprensión" — el usuario cierra un nodo como entendido pero no puede escribir el código real después.
+  </div>
+
+  <div class="card">
+    <div class="card-title">Question</div>
+    <div class="card-body">
+      <div class="question-text">DECISION: ¿Está bien orientado EntrenadorSocratico, es útil tal como está, y le falta algo importante?
+
+CONTEXT: CLI de Python de ~50 líneas (main.py) que envuelve la API de Anthropic como tutor socrático (solo preguntas, nunca respuestas directas; modelo claude-opus-4-8; historial solo en memoria; sin persistencia, tests, manejo de errores ni config). Es la Fase 1 de un currículo autodirigido (PLAN_ESTUDIO.md, 8 nudos de conocimiento por ROI) y una ruta a senior (RUTA_SENIOR.md) con capstone Qimera open source. Usuario: científico de datos oceanográficos, ~23 repos, cero cobertura de tests.
+
+STAKES: tiempo invertido como columna vertebral de un currículo de varios meses; riesgo de que sea demasiado delgada (no aprendizaje real) o le falte andamiaje que el plan asume.
+
+OPTIONS: (1) mantener tal cual + tracking manual externo; (2) agregar andamiaje de ingeniería (nodo/sesión, problema nuevo); (3) concluir que ya es un wrapper delgado suficientemente bueno.</div>
+      <div class="bias-flags">
+        <strong>Escaneo de sesgos previo (señales, no veredictos)</strong>
+        BIAS: Status quo bias — la opción 1 ancla en preservar lo actual.<br>
+        BIAS: IKEA effect — el usuario construyó la herramienta él mismo.<br>
+        BIAS: Sunk cost — STAKES pondera por tiempo ya invertido.<br>
+        BIAS: Planning fallacy — la opción 2 no lleva estimación de esfuerzo.
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Council Verdict</div>
+    <div class="card-body verdict">
+      <h2>Dónde coincide el consejo</h2>
+      <ul>
+        <li>El diseño central (rehusarse a dar respuestas, solo preguntas) está bien orientado tal cual y no requiere reescritura — First Principles, Expansionist, Outsider y, implícitamente, Executor (su RICE puntúa "mantener" por encima de "andamiaje completo") convergen aquí.</li>
+        <li>Construir la Opción 2 completa (seguimiento de nodo, motor de generación de problemas) es sobre-ingeniería que viola el ROI del propio plan — First Principles, Expansionist y Executor (RICE=4, el peor score) coinciden explícitamente.</li>
+        <li>El código real tiene fragilidad operativa concreta y verificable: cero <code>try/except</code>, <code>max_tokens=1024</code> bajo, sin persistencia de historial entre sesiones — confirmado por Executor y verificado línea por línea.</li>
+        <li>"¿Está bien orientado?" y "¿qué le falta?" tienen respuestas distintas — casi todos los advisors bifurcan aquí en vez de dar un sí/no plano.</li>
+      </ul>
+
+      <h2>Dónde choca el consejo</h2>
+      <p><strong>Red Team (gap de verificación) vs. First Principles / Expansionist (gap de persistencia).</strong> Red Team sostiene que sin ejecución de código real el "¿lo entendiste?" es autoreporte verbal con sesgo de complacencia del propio modelo — tres de cinco revisores de pares marcaron esto independientemente como la lectura más aguda, y es el único gap que podría producir una falsa sensación de progreso durante meses sin ningún síntoma visible desde dentro del sistema. First Principles sostiene que el fallo estructural es que el historial se pierde al cerrar, rompiendo la práctica deliberada compuesta entre sesiones — un argumento estructural, no especulativo, con un arreglo de una línea de ingeniería.</p>
+      <p>Chairman-Consensus encuentra más persuasivo el gap de persistencia (menor riesgo, no abre superficie de ejecución de código sobre pipelines oceanográficos reales). Chairman-Dissent insiste en que el gap de verificación es el hallazgo más agudo e incómodo, aunque sea el más difícil de accionar — ver el Dissent Ledger abajo.</p>
+      <p><strong>Nota de verificación:</strong> se confirmó directamente que <code>claude-opus-4-8</code> es un model ID real y vigente (Opus 4.8) — no es un error de la herramienta.</p>
+
+      <h2>Puntos ciegos</h2>
+      <ul>
+        <li>Nadie preguntó si el cuello de botella real es <em>adherencia</em> (¿se usa la herramienta consistentemente?) más que diseño.</li>
+        <li>Nadie distinguió "salida real ejecutada por la herramienta" de "el usuario reporta una salida que pudo fabricar" — la propuesta de Red Team solo cierra el gap si la ejecución es de la herramienta, no un honor system disfrazado.</li>
+        <li>Nadie propuso el experimento barato obvio: usar la herramienta 2 semanas más y registrar fricciones reales antes de comprometer ingeniería.</li>
+        <li>Nadie comparó con alternativas ya existentes (otros tutores socráticos, extensiones de IDE) para estimar el costo de oportunidad.</li>
+        <li>Todo el consejo ancló en "¿main.py está bien diseñado?" sin debatir en serio si correr el tutor dentro de un harness de agente (Claude Code) directamente vuelve obsoleto a main.py — un reencuadre mayor que cualquier parche individual.</li>
+      </ul>
+
+      <h2>Recomendación</h2>
+      <p>Mantén el núcleo del wrapper tal cual — está correctamente orientado en 50 líneas — pero no lo dejes exactamente "como está": aplica un parche de pocas horas que (a) capture excepciones de red/rate-limit sin perder el historial, y (b) persista y recargue el historial de chat entre sesiones en un archivo simple. No construyas la Opción 2 completa (seguimiento de nodos, generación de problemas): es scope creep contra el ROI del propio plan; el seguimiento de progreso vive en PLAN_ESTUDIO.md, no en código. La propuesta de Red Team (ejecución de código real) es legítima pero de coste/riesgo desproporcionado ahora — resérvala como paso 2 si confirmas empíricamente falsos positivos de comprensión.</p>
+
+      <h2>Lo primero que hacer en 48 horas</h2>
+      <p>Añade <code>try/except</code> alrededor de la llamada de streaming (capturando errores de red/rate-limit sin perder <code>history</code>) y persiste <code>history</code> a un archivo JSON al cerrar, cargándolo al abrir. Además — señal de Chairman-Dissent — la próxima vez que el tutor confirme que "ya lo entendiste", ve de inmediato a escribir ese código en tu repo real sin asistencia: ese único dato te dice si el riesgo de complacencia de Red Team es teórico o te está costando de verdad.</p>
+
+      <div class="dissent-ledger">
+        <strong>Dissent Ledger</strong>
+        <ul>
+          <li><strong>DISSENT PRESERVED:</strong> el riesgo de "verificación sin evidencia" (Red Team) — que el propio modelo que empujó 20 turnos hacia una respuesta es quien la certifica como "entendida" — se nombra como el hallazgo más agudo e incómodo, con 3/5 pares marcándolo independientemente. Consensus lo reduce a "legítimo pero desproporcionado, resérvalo como paso 2".</li>
+          <li><strong>DISSENT PRESERVED:</strong> probar el próximo momento "ajá" contra código real de inmediato — Dissent lo incluye como acción de 48 horas; Consensus lo deja condicional a evidencia futura.</li>
+          <li><strong>DISSENT PRESERVED:</strong> el punto ciego de si correr el tutor dentro de un harness de agente (en vez de main.py) vuelve obsoleta a la herramienta actual — un reencuadre mayor que no aparece en los puntos ciegos de Consensus.</li>
+        </ul>
+        <div class="note">NOTA: ambos chairmen coinciden en el núcleo (parche de persistencia ahora, no construir la Opción 2 completa), pero difieren en el alcance de la acción de 48 horas — Dissent suma el test de complacencia contra código real; Consensus lo trata como diferido. Se recomienda leer el análisis completo en el transcript.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">RICE Analysis (Executor)</div>
+    <div class="card-body">
+      <table class="rice-table">
+        <tr><th>Opción</th><th>Reach</th><th>Impact</th><th>Confidence</th><th>Effort</th><th>RICE</th></tr>
+        <tr><td>1. Mantener tal cual + tracking manual externo</td><td>~10 nodos futuros</td><td>M (2)</td><td>85%</td><td>0.1 sem-persona</td><td class="rice-score">170</td></tr>
+        <tr><td>2. Andamiaje completo (nodo/sesión, problema-nuevo, calibración)</td><td>~10 nodos futuros</td><td>H (3)</td><td>40%</td><td>3 sem-persona</td><td class="rice-score">4</td></tr>
+        <tr><td>3. Dejarlo así, no tocar nada</td><td>~10 nodos futuros</td><td>L (1)</td><td>55%</td><td>0.05 sem-persona</td><td class="rice-score">110</td></tr>
+        <tr><td>4. Blindaje mínimo (try/except, subir max_tokens, log de sesión, evaluar modelo)</td><td>~10 nodos futuros</td><td>H (3)</td><td>80%</td><td>0.4 sem-persona</td><td class="rice-score">60</td></tr>
+      </table>
+      <p style="margin-top:0.75rem; font-size:0.85rem;">Ranking: 1 &gt; 3 &gt; 4 &gt; 2. Recomendación práctica del Executor: combinar 1 + 4.</p>
+      <p class="status-draft" style="margin-top:0.5rem;">NOTE: INCOMPLETE DATA — bloqueado en: sesiones reales corridas y fricciones observadas; gasto real en tokens/costo; si se quiere persistencia de auditoría además de memoria conversacional.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Advisor Responses</div>
+    <div class="card-body">
+      <details class="advisor-red-team">
+        <summary>Red Team <span class="conf-medium">medium</span></summary>
+        <div class="detail-body">1. EL MODO DE FALLO
+Dentro de 3 meses el usuario ha tenido docenas de diálogos socráticos "exitosos" — Opus dice "sí, ahora lo entendiste" — pero al abrir mbes-pipeline o ocean-data-analysis sigue sin poder escribir el código sin el agente. El plan exige explícitamente "tropezar con un caso concreto (correr código y ver que falla)" y cerrar cada nodo con un "problema nuevo" validado contra código real. Pero main.py no tiene ninguna herramienta de ejecución — ni code_execution, ni bash, ni lectura de archivos del repo. Es un chat de texto puro. El "¿lo entendiste?" lo decide el mismo modelo que acaba de gastar 20 turnos empujando al usuario hacia la respuesta, con sesgo de complacencia. No hay fricción empírica.
+
+2. LA CAUSA RAÍZ
+La decisión de construir esto como un loop de chat en vez de un loop con verificación. El tutor evalúa comprensión por autoreporte verbal en lugar de evidencia ejecutable — exactamente lo que el plan identifica como la carencia central del usuario ("cero tests en 23 repos").
+
+3. LA SEÑAL QUE FALTA
+El system prompt dice "confirma solo cuando el usuario llegue a la respuesta correcta con sus propias palabras" — pero eso es una vara verbal, no verificable, y el mismo modelo que la aplica es el que quiere cerrar el ciclo.
+
+4. LA ALTERNATIVA
+No la Opción 2 completa. Un único agregado de bajo costo: darle al tutor ejecución de código y una regla — "no confirmes un nodo sin que el usuario ejecute y pegue la salida real".
+
+CONFIDENCE: medium
+assumptions: el modelo, sin salida ejecutable, tiende a confirmar comprensión de forma optimista bajo presión conversacional prolongada.
+what_would_change_my_mind: evidencia de que el usuario ya pega salidas de ejecución real en el chat manualmente.
+unknowns: si el usuario ya complementa las sesiones con ejecución real fuera del chat.</div>
+      </details>
+
+      <details class="advisor-first-principles">
+        <summary>First Principles <span class="conf-medium">medium</span></summary>
+        <div class="detail-body">REFRAMING A: Descarta que el andamiaje pedagógico deba vivir dentro del código. Lo único que hace "socrática" a una herramienta es que se niegue a dar respuestas y haga buenas preguntas — eso ya lo cumple en 50 líneas. Conclusión: está bien orientada tal cual.
+
+REFRAMING B: Descarta que "está bien orientada / le falta algo" sea la pregunta correcta, y pregunta qué requiere la práctica deliberada compuesta a lo largo de meses: dificultad ajustada, feedback, retención entre sesiones. El diseño cumple las dos primeras pero rompe la tercera — el historial se pierde al cerrar. El gap real es persistencia mínima de contexto entre sesiones, no "nodos/Bloques".
+
+REFRAMING C: Descarta que invertir ingeniería en la herramienta sea trabajo legítimo del plan. Ampliarla es scope creep disfrazado de tooling, viola el ROI que el propio plan declara.
+
+STRONGEST: B — ataca el único punto donde una herramienta demasiado delgada realmente sabotea el objetivo, con solución quirúrgica.
+RUNNER-UP: C — corrige el riesgo de sobre-extenderse hacia el andamiaje completo.
+
+CONFIDENCE: medium
+assumptions: el usuario usa sesiones separadas (no una sola sesión larga por bloque).
+what_would_change_my_mind: si usa una sesión larga continua por nudo, la pérdida de historial deja de ser relevante.
+unknowns: cadencia real de uso; si ya existe un registro de progreso fuera del repo.</div>
+      </details>
+
+      <details class="advisor-expansionist">
+        <summary>Expansionist <span class="conf-medium">medium</span></summary>
+        <div class="detail-body">OPTION A: "Andamiaje como documento, no como código" — un markdown que el usuario actualiza a mano al cerrar cada nodo. Cero líneas de Python nuevas. Upside: medium / effort: low.
+
+OPTION B: "Jubilar main.py y correr el tutor dentro del harness de agente que el usuario ya usa" — un archivo de proyecto con el prompt socrático + un comando, con el plan de estudio como memoria persistente y acceso directo a los repos reales. Historial persistente, generación de "problema nuevo" vía prompt, evaluación de "graduó el nodo" delegada al agente. Upside: high / effort: low.
+
+OPTION C: "Evaluación externa" — reemplazar chequeos de explicabilidad en código por explicar el principio a otra persona real. Upside: medium / effort: low-medium.
+
+DOMINANT: B — resuelve los tres puntos de STAKES sin escribir código que el plan desaconseja, porque el harness ya provee persistencia, acceso a archivos y memoria de proyecto de fábrica.
+WHY IT DOMINATES: la opción de andamiaje del usuario asume construir software nuevo; esta alternativa logra lo mismo reconfigurando una herramienta que ya existe, a costo casi nulo.
+
+CONFIDENCE: medium
+assumptions: el usuario tiene acceso continuo/económico al harness de agente y está dispuesto a que su tutor sea el mismo agente con el que interactúa para todo lo demás.
+what_would_change_my_mind: si el usuario valora la separación deliberada entre herramienta de estudio y herramienta de trabajo.
+unknowns: costo real de tokens vía harness vs. API directa; fatiga de herramientas.</div>
+      </details>
+
+      <details class="advisor-outsider">
+        <summary>Outsider <span class="conf-medium">medium</span></summary>
+        <div class="detail-body">FIELD: entrenador de fuerza y acondicionamiento físico (periodización, sobrecarga progresiva, logbook de sesiones) — un campo que separa el implemento (la barra) del programa (la planificación).
+
+NAIVE READ: sin el marco de "nodos de conocimiento", la pregunta suena a "¿mi barra olímpica de 50 líneas está bien diseñada?". Una barra no necesita saber en qué mesociclo estás.
+
+BUBBLE SPOTS: "nodo de conocimiento" y "graduar un nodo" son jerga de currículo que hace pensar que el software conversacional debería saber en qué fase estás. Fusionar herramienta-de-ejecución con sistema-de-seguimiento es la trampa, y la Opción 2 cae directo en ella.
+
+CROSS-DOMAIN INSIGHT: (1) el modelo y el prompt son fijos sin importar el bloque — como usar el mismo peso en semana 1 y semana 12. (2) Perder el historial al cerrar es perder el logbook — sin él no hay forma de ver si las preguntas de esta semana son más agudas que las de la semana pasada. Antes de instrumentar la barra, consigue el cuaderno.
+
+CONFIDENCE: medium
+assumptions: el valor pedagógico depende de poder comparar sesiones en el tiempo.
+what_would_change_my_mind: si el usuario ya lleva registro de progreso en otro lado.
+unknowns: si existe ya algún registro externo de qué bloques completó y cuándo; si el modelo realmente varía en dificultad.</div>
+      </details>
+
+      <details class="advisor-executor">
+        <summary>Executor <span class="conf-medium">medium</span></summary>
+        <div class="detail-body">OODA STAGE: Orient — correcto pero infra-observado. No hay evidencia citada de cuántas sesiones socráticas corriste, si alguna vez crasheó, o cuánto costó en tokens.
+
+Verificación de código (main.py, 51 líneas): cero try/except — cualquier RateLimitError, APIConnectionError o Wi-Fi inestable mata el proceso y borra history completo, perdiendo una sesión de 20-40 intercambios. max_tokens=1024 es bajo. claude-opus-4-8 es tier Opus para un loop de chat sin tool-use — Sonnet 5 (~40% más barato) da calidad casi-Opus en este tipo de tarea.
+
+RICE SCORING: ver tabla arriba. Ranking: 1 &gt; 3 &gt; 4 &gt; 2. Recomendación: 1 + 4 combinadas.
+
+DATA COMPLETENESS CHECK: bloqueado en sesiones reales/fricciones, costo real medido, y si se quiere log de auditoría cross-sesión.
+
+CONFIDENCE: medium
+assumptions: el mayor riesgo no es la falta de andamiaje sino la fragilidad operativa del wrapper actual.
+what_would_change_my_mind: pérdidas de sesión reales o gasto de Opus significativo subirían el rank de la Opción 4.
+unknowns: sesiones/fricciones reales, costo real medido, si se quiere log de auditoría cross-sesión.</div>
+      </details>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Peer Reviews</div>
+    <div class="card-body">
+      <details><summary>Reviewer 1 <span class="conf-medium">consenso: 2/5</span></summary>
+      <div class="detail-body">STRONGEST: Red Team. Es el único que va al código real de main.py y al system prompt para identificar el punto de falla concreto y lo conecta con "cero tests en 23 repos".
+EXPLOITABLE WEAKNESS: asume sin evidencia que el modelo confirma comprensión optimistamente; su propia solución es una mini-versión del andamiaje que dice evitar.
+COLLECTIVE MISS: nadie pregunta si el cuello de botella real es adherencia/uso consistente, no diseño.
+CONSENSUS STRENGTH: 2</div></details>
+
+      <details><summary>Reviewer 2 <span class="conf-medium">consenso: 2/5</span></summary>
+      <div class="detail-body">STRONGEST: Red Team.
+EXPLOITABLE WEAKNESS: no verificado contra uso real — si el usuario ya pega salidas de código manualmente, la crítica pierde fuerza.
+COLLECTIVE MISS: nadie distingue "pegar salida real" de "reportar salida fabricada" — verificación ejecutable requiere que la herramienta misma ejecute el código.
+CONSENSUS STRENGTH: 2</div></details>
+
+      <details><summary>Reviewer 3 <span class="conf-medium">consenso: 2/5</span></summary>
+      <div class="detail-body">STRONGEST: Red Team.
+EXPLOITABLE WEAKNESS: supuesto no verificado; no pondera costo/riesgo de dar ejecución de código real sobre pipelines de datos oceanográficos.
+COLLECTIVE MISS: nadie verificó si "claude-opus-4-8" es un model ID real y vigente (resuelto luego por los chairmen: sí lo es).
+CONSENSUS STRENGTH: 2</div></details>
+
+      <details><summary>Reviewer 4 <span class="conf-medium">consenso: 2/5</span></summary>
+      <div class="detail-body">STRONGEST: Executor. Única lectura basada en evidencia concreta del código, separa "orientación correcta" de "fragilidad operativa".
+EXPLOITABLE WEAKNESS: su scoring RICE es aritmética de aspecto riguroso sobre números inventados — falsa precisión.
+COLLECTIVE MISS: nadie estima el costo de oportunidad de parchear ahora vs. después, ni compara con alternativas ya existentes.
+CONSENSUS STRENGTH: 2</div></details>
+
+      <details><summary>Reviewer 5 <span class="conf-medium">consenso: 2/5</span></summary>
+      <div class="detail-body">STRONGEST: Red Team.
+EXPLOITABLE WEAKNESS: dar ejecución de código real a un LLM implica sandboxing/seguridad no trivial — cae en el mismo planning fallacy que señala.
+COLLECTIVE MISS: nadie propone un experimento barato (usar la herramienta dos semanas más, registrar fricciones/costos reales) antes de comprometer semanas de ingeniería.
+CONSENSUS STRENGTH: 2</div></details>
+
+      <p style="margin-top:0.875rem; font-size:0.8rem; color:#888;">Promedio de consenso: 2.0/5 — ronda de debate forzado omitida (sin consenso suficiente para atacar; split genuino de tres vías entre Red Team, First Principles/Expansionist y Executor).</p>
+    </div>
+  </div>
+
+  <footer>LLM Council &middot; Mode: Standard &middot; SHA: 4bd6ef43 &middot; <a href="council-transcript-20260708-154033Z-q4bd6ef43.md">Full transcript</a></footer>
+
+</div>
+</body>
+</html>
